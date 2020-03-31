@@ -1,0 +1,11 @@
+// Translation phrases for the Biohazard game mode.
+// First created by [X6] Herbius on Monday 16th April 2012.
+
+"Phrases"
+{
+	// Comment
+	"Health"
+	{
+		"en"	"Health"
+	}
+}
