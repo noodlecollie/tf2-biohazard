@@ -23,13 +23,12 @@ Notes:
 #pragma semicolon 1
 
 #define DEVELOPER	0
-#define MEZOMBIE	0
 
 // Plugin defines
 #define PLUGIN_NAME			"TF2 Biohazard"
 #define PLUGIN_AUTHOR		"[X6] Herbius"
 #define PLUGIN_DESCRIPTION	"Hold off the zombies to win the round!"
-#define PLUGIN_VERSION		"0.0.2.74"
+#define PLUGIN_VERSION		"0.0.3.0"
 #define PLUGIN_URL			"http://x6herbius.com/"
 
 // State flags
@@ -147,7 +146,7 @@ public OnPluginStart()
 
 	LoadTranslations("TFBiohazard/TFBiohazard_phrases");
 	LoadTranslations("common.phrases");
-	AutoExecConfig(true, "TFBiohazard", "sourcemod/TFBiohazard");
+	AutoExecConfig(true, "TFBiohazard", "sourcemod");
 
 	// Plugin version convar
 	CreateConVar("tfbh_version", PLUGIN_VERSION, "Plugin version.", FCVAR_NOTIFY | FCVAR_DONTRECORD);
@@ -257,10 +256,6 @@ public OnPluginStart()
 
 	#if DEVELOPER == 1
 	LogMessage("DEVELOPER flag set! Reset this before release!");
-	#endif
-
-	#if MEZOMBIE == 1
-	LogMessage("MEZOMBIE flag set! Reset this before release!");
 	#endif
 
 	// If we're not enabled, don't set anything up.
@@ -543,20 +538,6 @@ public Event_SetupFinished(Handle:event, const String:name[], bool:dontBroadcast
 	// Randomise the array.
 	SortIntegers(players, redTeam, Sort_Random);
 
-	// Due to a SourceMod bug, the first element of the array will always remain unsorted.
-	// We correct this here.
-
-	// Added this preproc to allow the first person connected (ie. me) to always be a zombie when testing. Bug utilisation!
-	#if MEZOMBIE != 1
-	new slotToSwap = GetRandomInt(0, redTeam-1);	// Choose a random slot to swap between.
-
-	if ( slotToSwap > 0 )	// If the slot is 0, don't bother doing anything else.
-	{
-		new temp = players[0];							// Make a note of the index in the first element.
-		players[0] = players[slotToSwap];				// Put the data from the chosen slot into the first slot.
-		players[slotToSwap] = temp;						// Put the value in temp back into the random slot.
-	}
-
 	if ( cvDebug & DEBUG_TEAMCHANGE == DEBUG_TEAMCHANGE )
 	{
 		LogMessage("After sort:");
@@ -566,7 +547,6 @@ public Event_SetupFinished(Handle:event, const String:name[], bool:dontBroadcast
 			LogMessage("Array index %d - %d %N", i, players[i], players[i]);
 		}
 	}
-	#endif
 
 	// Choose clients from the top of the array.
 	for ( new i = 0; i < nZombies; i++ )
@@ -781,7 +761,7 @@ public Action:TeamChange(client, const String:command[], argc)
 	if ( StrContains(arg, "red", false) != -1 || StrContains(arg, "auto", false) != -1 )
 	{
 		// If we are still awaiting the first zombie to become infected, allow team changes to Red.
-		if ( StrContains(arg, "red", false) != -1 ) return Plugin_Continue;
+		if ( (g_PluginState & STATE_AWAITING == STATE_AWAITING) ) return Plugin_Continue;
 
 		if ( cvDebug & DEBUG_TEAMCHANGE == DEBUG_TEAMCHANGE ) LogMessage("Arg contains red or auto, blocking change.");
 		return Plugin_Handled;
